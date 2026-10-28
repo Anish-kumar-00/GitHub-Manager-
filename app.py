@@ -6,6 +6,7 @@ import time
 import zipfile
 import asyncio
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import requests
 import streamlit as st
@@ -30,13 +31,14 @@ ALLOWED_USER_ID = int(_uid) if _uid else None
 
 API = "https://api.github.com"
 HEADERS = {"Authorization": f"Bearer {GH_TOKEN}", "Accept": "application/vnd.github+json"}
+SESSION = requests.Session()
 MAX_ZIP_BYTES = 20 * 1024 * 1024  # Telegram bot download limit
 MAX_FILES = 500
 SKIP = ("__MACOSX/", ".DS_Store", ".git/")
 
 
 def gh(method, path, **kwargs):
-    r = requests.request(method, f"{API}{path}", headers=HEADERS, timeout=60, **kwargs)
+    r = SESSION.request(method, f"{API}{path}", headers=HEADERS, timeout=60, **kwargs)
     if r.status_code >= 400:
         try:
             j = r.json()
@@ -100,13 +102,29 @@ def create_repo_and_push(name, private, files):
     parent = ref["object"]["sha"]
     base_tree = gh("GET", f"/repos/{full}/git/commits/{parent}")["tree"]["sha"]
 
-    tree = []
-    for path, content in files.items():
+    def make_entry(item):
+        path, content = item
+        # text files seedhe tree me inline jati hain (extra API call nahi lagti)
+        try:
+            text = content.decode("utf-8")
+            if content and "\x00" not in text:
+                return {"path": path, "mode": "100644", "type": "blob", "content": text}
+        except UnicodeDecodeError:
+            pass
+        # binary / khaali files ke liye blob banao
         blob = gh("POST", f"/repos/{full}/git/blobs",
                   json={"content": base64.b64encode(content).decode(), "encoding": "base64"})
-        tree.append({"path": path, "mode": "100644", "type": "blob", "sha": blob["sha"]})
+        return {"path": path, "mode": "100644", "type": "blob", "sha": blob["sha"]}
 
-    new_tree = gh("POST", f"/repos/{full}/git/trees", json={"base_tree": base_tree, "tree": tree})
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        entries = list(pool.map(make_entry, files.items()))
+
+    # tree chhote tukdon me banao taaki request badi na ho
+    tree_sha = base_tree
+    for i in range(0, len(entries), 100):
+        tree_sha = gh("POST", f"/repos/{full}/git/trees",
+                      json={"base_tree": tree_sha, "tree": entries[i:i + 100]})["sha"]
+    new_tree = {"sha": tree_sha}
     commit = gh("POST", f"/repos/{full}/git/commits",
                 json={"message": "Upload via Telegram bot", "tree": new_tree["sha"], "parents": [parent]})
     gh("PATCH", f"/repos/{full}/git/refs/heads/{branch}", json={"sha": commit["sha"]})
