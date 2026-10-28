@@ -44,7 +44,7 @@ def gh(method, path, **kwargs):
                 e.get("message", str(e)) if isinstance(e, dict) else str(e)
                 for e in j.get("errors", [])
             )
-            msg = f"{j.get('message', r.text)} {detail}".strip()
+            msg = f"{j.get('message', '')} {detail}".strip() + f"\nRAW: {r.text[:400]}"
         except Exception:
             msg = r.text
         raise RuntimeError(f"GitHub {r.status_code}: {msg}")
@@ -123,6 +123,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if ALLOWED_USER_ID and update.effective_user.id != ALLOWED_USER_ID:
+        return
+    r = await asyncio.to_thread(lambda: requests.get(f"{API}/user", headers=HEADERS, timeout=30))
+    scopes = r.headers.get("X-OAuth-Scopes", "(nahi mila - fine-grained token?)")
+    login = r.json().get("login") if r.ok else None
+    await update.message.reply_text(
+        f"GitHub status: {r.status_code}\nuser: {login}\nscopes: {scopes}"
+        + ("" if r.ok else f"\n{r.text[:300]}")
+    )
+
+
 async def handle_zip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if ALLOWED_USER_ID and update.effective_user.id != ALLOWED_USER_ID:
         return
@@ -161,6 +173,7 @@ def run_bot():
     asyncio.set_event_loop(asyncio.new_event_loop())
     app = Application.builder().token(TG_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("check", check))
     app.add_handler(MessageHandler(filters.Document.ALL, handle_zip))
     app.run_polling(stop_signals=None, close_loop=False)
 
