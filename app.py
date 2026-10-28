@@ -38,7 +38,16 @@ SKIP = ("__MACOSX/", ".DS_Store", ".git/")
 def gh(method, path, **kwargs):
     r = requests.request(method, f"{API}{path}", headers=HEADERS, timeout=60, **kwargs)
     if r.status_code >= 400:
-        raise RuntimeError(f"GitHub {r.status_code}: {r.json().get('message', r.text)}")
+        try:
+            j = r.json()
+            detail = "; ".join(
+                e.get("message", str(e)) if isinstance(e, dict) else str(e)
+                for e in j.get("errors", [])
+            )
+            msg = f"{j.get('message', r.text)} {detail}".strip()
+        except Exception:
+            msg = r.text
+        raise RuntimeError(f"GitHub {r.status_code}: {msg}")
     return r.json()
 
 
@@ -66,7 +75,16 @@ def read_zip(data):
 
 
 def create_repo_and_push(name, private, files):
-    repo = gh("POST", "/user/repos", json={"name": name, "private": private, "auto_init": True})
+    repo = None
+    for i in range(1, 8):
+        candidate = name if i == 1 else f"{name}-{i}"
+        try:
+            repo = gh("POST", "/user/repos", json={"name": candidate, "private": private, "auto_init": True})
+            break
+        except RuntimeError as e:
+            if "already exists" in str(e) and i < 7:
+                continue
+            raise
     full, branch = repo["full_name"], repo["default_branch"]
 
     ref = None
@@ -101,7 +119,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Zip bhejo, repo ban jayega.\n\n"
         "Caption me kuch likhoge to wo repo ka naam hoga, warna zip ka naam.\n"
-        "Caption me 'public' likhoge to repo public banega (default private)."
+        "Caption me 'private' likhoge to repo private banega (default public)."
     )
 
 
@@ -118,9 +136,12 @@ async def handle_zip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     caption = (update.message.caption or "").strip()
     words = caption.split()
-    private = "public" not in [w.lower() for w in words]
+    private = "private" in [w.lower() for w in words]
     words = [w for w in words if w.lower() not in ("public", "private")]
-    name = clean_name(" ".join(words) if words else doc.file_name[:-4])
+    if words:
+        name = clean_name(" ".join(words))
+    else:
+        name = clean_name(re.sub(r"-(master|main)$", "", doc.file_name[:-4], flags=re.I))
 
     msg = await update.message.reply_text(f"'{name}' bana raha hu...")
     try:
@@ -128,7 +149,7 @@ async def handle_zip(update: Update, context: ContextTypes.DEFAULT_TYPE):
         data = bytes(await tg_file.download_as_bytearray())
         files = await asyncio.to_thread(read_zip, data)
         url = await asyncio.to_thread(create_repo_and_push, name, private, files)
-        await msg.edit_text(f"Ho gaya ({len(files)} files)\n{url}")
+        await msg.edit_text(f"Ho gaya ({len(files)} files, {'private' if private else 'public'})\n{url}")
     except Exception as e:
         err = str(e)
         if "already exists" in err:
