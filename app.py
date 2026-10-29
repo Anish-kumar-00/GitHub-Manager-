@@ -13,7 +13,13 @@ from urllib.parse import quote
 
 import requests
 import streamlit as st
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    MenuButtonWebApp,
+    Update,
+    WebAppInfo,
+)
 from telegram.error import BadRequest
 from telegram.ext import (
     Application,
@@ -38,6 +44,7 @@ def secret(key, default=None):
 
 TG_TOKEN = secret("TELEGRAM_TOKEN")
 GH_TOKEN = secret("GITHUB_TOKEN")
+WEBAPP_URL = secret("WEBAPP_URL")  # GitHub Pages wala https link (index.html)
 _uid = secret("ALLOWED_USER_ID")
 ALLOWED_USER_ID = int(_uid) if _uid else None
 
@@ -484,7 +491,8 @@ async def guard(update):
     return uid == ALLOWED_USER_ID
 
 
-MENU_ROWS = [
+MENU_ROWS = ([[InlineKeyboardButton("💻 VS Code UI kholo", web_app=WebAppInfo(url=WEBAPP_URL))]]
+             if WEBAPP_URL else []) + [
     [B("📦 Naya repo (zip bhejo)", "new")],
     [B("📂 Mere repos", "list:1"), B("⚙️ Settings", "set")],
     [B("🔑 Token check", "check"), B("❓ Help", "help")],
@@ -1207,6 +1215,9 @@ async def handle_doc(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ═════════════════════════ Run bot inside Streamlit ═════════════════════════
 async def post_init(app):
+    if WEBAPP_URL:  # chat ke bottom me 'VS Code' menu button
+        await app.bot.set_chat_menu_button(
+            menu_button=MenuButtonWebApp(text="VS Code", web_app=WebAppInfo(url=WEBAPP_URL)))
     await app.bot.set_my_commands([
         ("menu", "Main menu"),
         ("repos", "Mere repos"),
