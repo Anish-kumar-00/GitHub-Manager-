@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>GitHub Manager</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/rust/rust.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/toml/toml.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/dockerfile/dockerfile.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{--bg:var(--tg-theme-bg-color,#fff);--tx:var(--tg-theme-text-color,#111);--hint:var(--tg-theme-hint-color,#8a8a8e);--link:var(--tg-theme-link-color,#2481cc);--btn:var(--tg-theme-button-color,#2481cc);--btx:var(--tg-theme-button-text-color,#fff);--sec:var(--tg-theme-secondary-bg-color,#f1f1f4);--danger:var(--tg-theme-destructive-text-color,#e53935);--ok:#2e9d57;--bd:rgba(127,127,127,.25)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--tx);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+#root{display:flex;flex-direction:column;height:var(--tg-viewport-height,100vh);max-width:900px;margin:0 auto}
+#hdr{flex:none;border-bottom:1px solid var(--bd);background:var(--bg)}
+#app{flex:1;min-height:0;overflow:auto;-webkit-overflow-scrolling:touch}
+#app.noscroll{overflow:hidden;display:flex;flex-direction:column}
+#foot{flex:none;padding-bottom:env(safe-area-inset-bottom,0)}
+.hrow{display:flex;align-items:center;gap:4px;padding:8px 10px}
+.grow{flex:1;min-width:0}
+.ht{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hs{color:var(--hint);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ib{border:0;background:var(--sec);color:var(--tx);border-radius:10px;min-width:38px;height:38px;font-size:17px;cursor:pointer}
+.ib.on{background:var(--btn);color:var(--btx)}
+.tabs{display:flex;overflow-x:auto;padding:0 6px}
+.tab{padding:9px 12px;color:var(--hint);font-weight:600;border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+.tab.on{color:var(--link);border-color:var(--link)}
+.pad{padding:14px}.pad0{padding:0 0 70px}
+.searchbar{padding:10px 10px 4px}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--sec);color:var(--tx);font:inherit;outline:none;margin:4px 0}
+input[type=checkbox]{width:auto;margin:0 8px 0 0}
+textarea{resize:vertical}
+.btn{display:inline-block;border:0;background:var(--btn);color:var(--btx);padding:11px 16px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;margin:4px 0}
+.btn.ghost{background:var(--sec);color:var(--tx)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn.sm{padding:7px 12px;font-size:13px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 10px 8px}
+.chip{padding:5px 12px;border-radius:16px;background:var(--sec);white-space:nowrap;font-size:13px;cursor:pointer}
+.chip.on{background:var(--btn);color:var(--btx)}
+.row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:1px solid var(--bd);cursor:pointer}
+.row:active{background:var(--sec)}
+.ico{font-size:20px;width:26px;text-align:center;flex:none}
+.t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s{color:var(--hint);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m{color:var(--hint);font-size:12px}
+.more{padding:6px 10px;color:var(--hint);font-size:20px}
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;padding:10px 12px 4px;font-size:13px}
+.crumb{color:var(--link);cursor:pointer}.crumb:not(:last-child)::after{content:" /";color:var(--hint)}
+.toolbar{display:flex;gap:6px;padding:6px 12px;flex-wrap:wrap}
+.card{background:var(--sec);border-radius:14px;padding:14px;margin:10px 12px}
+.card h2,.card h3{margin:0 0 6px}
+.hint{color:var(--hint);font-size:13px}.small{font-size:12px}
+.err{background:rgba(229,57,53,.12);color:var(--danger);padding:10px;border-radius:10px;margin:8px 12px;white-space:pre-wrap;word-break:break-word}
+.srow{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.srow:last-child{border:0}
+.lbl{font-size:12px;color:var(--hint)}
+code{background:var(--sec);padding:1px 5px;border-radius:5px}
+.spin{width:28px;height:28px;border:3px solid var(--bd);border-top-color:var(--btn);border-radius:50%;animation:sp 0.8s linear infinite;margin:30px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+#modal{display:none}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.ov.top{align-items:flex-start;background:transparent;pointer-events:none}
+.mbox{background:var(--bg);width:100%;max-width:700px;max-height:88vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom,0));pointer-events:auto;box-shadow:0 -4px 24px rgba(0,0,0,.25)}
+.ov.top .mbox{border-radius:0 0 18px 18px;box-shadow:0 4px 24px rgba(0,0,0,.25)}
+.mbox h3{margin:0 0 8px}
+.mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.sitem{padding:13px 4px;border-bottom:1px solid var(--bd);cursor:pointer}
+.sitem.danger{color:var(--danger)}
+.chk{display:flex;align-items:center;margin:8px 0}
+#busy{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:12px;z-index:99;display:none;max-width:90%;white-space:pre-wrap;word-break:break-word;font-size:14px}
+#toast.err{background:var(--danger)}
+.bulk{display:flex;gap:6px;padding:8px;overflow-x:auto;border-top:1px solid var(--bd);background:var(--bg)}
+#edhost{flex:1;min-height:0;position:relative}
+.CodeMirror{position:absolute;inset:0;height:auto;background:var(--bg);color:var(--tx);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.CodeMirror-gutters{background:var(--sec);border-right:1px solid var(--bd)}
+.CodeMirror-linenumber{color:var(--hint)}
+.CodeMirror-cursor{border-left:2px solid var(--tx)}
+.CodeMirror-selected{background:rgba(36,129,204,.3)!important}
+.CodeMirror-activeline-background{background:rgba(127,127,127,.12)}
+.ta{position:absolute;inset:0;width:100%;height:100%;border:0;border-radius:0;margin:0;background:var(--bg);font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow:auto;resize:none}
+.cm-keyword{color:#a626a4}.cm-atom,.cm-number{color:#986801}.cm-def{color:#4078f2}.cm-string,.cm-string-2{color:#50a14f}.cm-comment{color:#a0a1a7;font-style:italic}.cm-tag{color:#e45649}.cm-attribute{color:#986801}.cm-builtin{color:#c18401}.cm-variable-2,.cm-type{color:#0184bc}.cm-property{color:#e45649}.cm-header,.cm-link{color:#4078f2}.cm-meta,.cm-qualifier{color:#986801}
+html[data-dark="1"] .cm-keyword{color:#c678dd}html[data-dark="1"] .cm-atom,html[data-dark="1"] .cm-number{color:#d19a66}html[data-dark="1"] .cm-def{color:#61afef}html[data-dark="1"] .cm-string,html[data-dark="1"] .cm-string-2{color:#98c379}html[data-dark="1"] .cm-comment{color:#7f848e}html[data-dark="1"] .cm-tag,html[data-dark="1"] .cm-property{color:#e06c75}html[data-dark="1"] .cm-attribute,html[data-dark="1"] .cm-meta,html[data-dark="1"] .cm-qualifier{color:#d19a66}html[data-dark="1"] .cm-builtin{color:#e6c07b}html[data-dark="1"] .cm-variable-2,html[data-dark="1"] .cm-type{color:#56b6c2}html[data-dark="1"] .cm-header,html[data-dark="1"] .cm-link{color:#61afef}
+.symbar{display:flex;gap:4px;overflow-x:auto;padding:5px 6px;border-top:1px solid var(--bd);background:var(--sec)}
+.symbar button{flex:none;min-width:36px;height:34px;border:0;border-radius:8px;background:var(--bg);color:var(--tx);font:600 15px ui-monospace,Menlo,monospace}
+.stat{padding:3px 10px;font-size:11px;color:var(--hint);background:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+pre.diff{margin:6px 0;overflow-x:auto;font:12px/1.4 ui-monospace,Menlo,monospace;background:var(--sec);border-radius:8px;padding:8px}
+.dl{display:block;white-space:pre}.dl.a{background:rgba(46,157,87,.18)}.dl.d{background:rgba(229,57,53,.18)}.dl.h{color:var(--link)}
+details{margin:8px 12px}summary{cursor:pointer;font-weight:600;word-break:break-all}
+.add{color:var(--ok)}.del{color:var(--danger)}
+.dot{color:var(--danger);font-size:20px;line-height:1}
+img.prev{max-width:100%;border-radius:8px}
+</style>
+</head>
+<body>
+<div id="root"><div id="hdr"></div><div id="app"></div><div id="foot"></div></div>
+<div id="modal"></div>
+<div id="busy"><div class="spin"></div><div id="busymsg"></div></div>
+<div id="toast"></div>
+<script>
+(function () {
+'use strict';
+/* ───────────── basics ───────────── */
+const tg = window.Telegram && window.Telegram.WebApp;
+const inTg = !!(tg && tg.initData);
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const encPath = (p) => p.split('/').map(encodeURIComponent).join('/');
+const parentOf = (p) => (p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '');
+const baseOf = (p) => p.slice(p.lastIndexOf('/') + 1);
+const cleanRepoName = (n) => (n.trim().replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^[-.]+|[-.]+$/g, '') || 'new-repo');
+function ago(iso) {
+  if (!iso) return '';
+  const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return 'abhi';
+  if (s < 3600) return Math.floor(s / 60) + 'm';
+  if (s < 86400) return Math.floor(s / 3600) + 'h';
+  if (s < 2592000) return Math.floor(s / 86400) + 'd';
+  if (s < 31536000) return Math.floor(s / 2592000) + 'mo';
+  return Math.floor(s / 31536000) + 'y';
+}
+function fileIcon(n) {
+  const e = (n.split('.').pop() || '').toLowerCase();
+  if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'bmp'].includes(e)) return '🖼';
+  return ({ md: '📝', json: '🧾', py: '🐍', js: '🟨', ts: '🟦', html: '🌐', css: '🎨', zip: '🗜', sh: '⚙️', yml: '⚙️', yaml: '⚙️' })[e] || '📄';
+}
+
+/* ───────────── storage (Telegram CloudStorage, fallback localStorage) ───────────── */
+const Store = {
+  cloud: !!(inTg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast('6.9')),
+  _t(p) { return Promise.race([p, sleep(4000).then(() => null)]); },
+  get(k) {
+    if (this.cloud) return this._t(new Promise((res) => { try { tg.CloudStorage.getItem(k, (e, v) => res(e ? null : (v || null))); } catch (e) { res(null); } }));
+    try { return Promise.resolve(localStorage.getItem(k)); } catch (e) { return Promise.resolve(null); }
+  },
+  set(k, v) {
+    if (this.cloud) return this._t(new Promise((res) => { try { tg.CloudStorage.setItem(k, v, (e) => res(!e)); } catch (e) { res(false); } }));
+    try { localStorage.setItem(k, v); } catch (e) { /* ignore */ }
+    return Promise.resolve(true);
+  },
+  del(k) {
+    if (this.cloud) return this._t(new Promise((res) => { try { tg.CloudStorage.removeItem(k, () => res(true)); } catch (e) { res(false); } }));
+    try { localStorage.removeItem(k); } catch (e) { /* ignore */ }
+    return Promise.resolve(true);
+  },
+};
+
+/* ───────────── bytes / text ───────────── */
+const TE = new TextEncoder();
+function b64FromBytes(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function bytesFromB64(b64) {
+  const s = atob(String(b64).replace(/\s/g, ''));
+  const a = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) a[i] = s.charCodeAt(i);
+  return a;
+}
+function textOf(bytes) { // string if valid utf-8 text, else null
+  try {
+    const t = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    return t.indexOf('\u0000') === -1 ? t : null;
+  } catch (e) { return null; }
+}
+async function pool(items, n, fn) {
+  const out = new Array(items.length);
+  let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (i < items.length) { const k = i++; out[k] = await fn(items[k], k); }
+  }));
+  return out;
+}
+
+/* ───────────── GitHub API ───────────── */
+const GH = {
+  token: '', login: '',
+  async req(method, path, body) {
+    let url = path.startsWith('http') ? path : 'https://api.github.com' + path;
+    if (method === 'GET') url += (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    const r = await fetch(url, {
+      method,
+      headers: Object.assign({ Authorization: 'Bearer ' + this.token, Accept: 'application/vnd.github+json' }, body ? { 'Content-Type': 'application/json' } : {}),
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!r.ok) {
+      let m = r.statusText;
+      try { const j = await r.json(); m = (j.message || m) + (j.errors ? ' ' + j.errors.map((e) => e.message || JSON.stringify(e)).join('; ') : ''); } catch (e) { /* ignore */ }
+      throw new Error('GitHub ' + r.status + ': ' + m);
+    }
+    if (r.status === 204) return null;
+    const t = await r.text();
+    return t ? JSON.parse(t) : null;
+  },
+  async all(path) {
+    let out = [];
+    for (let p = 1; p <= 10; p++) {
+      const a = await this.req('GET', path + (path.includes('?') ? '&' : '?') + 'per_page=100&page=' + p);
+      out = out.concat(a);
+      if (a.length < 100) break;
+    }
+    return out;
+  },
+  async scopes() {
+    const r = await fetch('https://api.github.com/user', { headers: { Authorization: 'Bearer ' + this.token } });
+    return r.headers.get('x-oauth-scopes');
+  },
+};
+
+/* ───────────── state ───────────── */
+const S = {
+  repos: [], reposLoading: false, q: '', filter: 'all', sort: 'updated', select: false, picked: new Set(), recents: [],
+  repo: null, branch: '', tab: 'files', path: '', items: [], commits: [], cpage: 1, cmore: false, branches: [], pages: null, treeCache: {},
+  prefs: { wrap: true, font: 14 }, ai: { key: '', model: 'claude-sonnet-5-5', system: '' },
+};
+const stack = [];
+let Edt = null; // editor session
+const top = () => stack[stack.length - 1];
+const full = () => S.repo.full_name;
+
+/* ───────────── UI primitives ───────────── */
+function setHeader(h) { $('#hdr').innerHTML = h; }
+let toastTimer;
+function toast(msg, isErr) {
+  const t = $('#toast'); t.textContent = msg; t.className = isErr ? 'err' : ''; t.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.display = 'none'; }, isErr ? 5000 : 2300);
+}
+function busy(msg) {
+  $('#busymsg').textContent = msg || '';
+  $('#busy').style.display = 'flex';
+  return () => { $('#busy').style.display = 'none'; };
+}
+async function withBusy(msg, fn) { const end = busy(msg); try { return await fn(); } finally { end(); } }
+function openModal(html, o) {
+  const m = $('#modal');
+  m.innerHTML = '<div class="ov' + (o && o.top ? ' top' : '') + '"><div class="mbox">' + html + '</div></div>';
+  m.style.display = 'block';
+  return m.querySelector('.mbox');
+}
+function closeModal() { const m = $('#modal'); m.style.display = 'none'; m.innerHTML = ''; }
+function ask(title, o) {
+  o = o || {};
+  return new Promise((res) => {
+    const box = openModal('<h3>' + esc(title) + '</h3>' + (o.hint ? '<p class="hint">' + esc(o.hint) + '</p>' : '') +
+      (o.multiline ? '<textarea id="m-in" rows="6"></textarea>' : '<input id="m-in" autocomplete="off" autocapitalize="off" spellcheck="false">') +
+      '<div class="mrow"><button class="btn ghost" id="m-no">Cancel</button><button class="btn" id="m-ok">' + esc(o.okText || 'OK') + '</button></div>');
+    const inp = box.querySelector('#m-in'); inp.value = o.value || ''; inp.placeholder = o.placeholder || '';
+    setTimeout(() => inp.focus(), 60);
+    const done = (v) => { closeModal(); res(v); };
+    box.querySelector('#m-no').onclick = () => done(null);
+    box.querySelector('#m-ok').onclick = () => done(inp.value);
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !o.multiline) { e.preventDefault(); done(inp.value); } });
+  });
+}
+function confirmBox(title, text, o) {
+  o = o || {};
+  return new Promise((res) => {
+    const box = openModal('<h3>' + esc(title) + '</h3><p>' + esc(text || '') + '</p><div class="mrow"><button class="btn ghost" id="m-no">Cancel</button><button class="btn' + (o.danger ? ' danger' : '') + '" id="m-ok">' + esc(o.okText || 'OK') + '</button></div>');
+    box.querySelector('#m-no').onclick = () => { closeModal(); res(false); };
+    box.querySelector('#m-ok').onclick = () => { closeModal(); res(true); };
+  });
+}
+function sheet(title, items) {
+  return new Promise((res) => {
+    const box = openModal('<h3>' + esc(title) + '</h3>' + items.map((it, i) => '<div class="sitem' + (it.danger ? ' danger' : '') + '" data-i="' + i + '">' + esc(it.label) + '</div>').join('') + '<div class="sitem" data-i="-1" style="color:var(--hint)">Cancel</div>');
+    box.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-i]'); if (!el) return;
+      const i = Number(el.dataset.i); closeModal(); res(i < 0 ? null : items[i].id);
+    });
+  });
+}
+function picker(title, items, onPick, extra) { // items: [{label, sub, value}]
+  const box = openModal('<h3>' + esc(title) + '</h3><input id="pk-q" placeholder="🔎 type karo..." autocomplete="off" autocapitalize="off" spellcheck="false"><div id="pk-l"></div>' +
+    '<div class="mrow">' + (extra ? '<button class="btn ghost" id="pk-x">' + esc(extra.label) + '</button>' : '') + '<button class="btn ghost" id="pk-no">Close</button></div>');
+  const inp = box.querySelector('#pk-q'); const list = box.querySelector('#pk-l');
+  let cur = [];
+  const draw = () => {
+    const toks = inp.value.toLowerCase().split(/\s+/).filter(Boolean);
+    cur = items.filter((it) => toks.every((t) => it.label.toLowerCase().includes(t))).slice(0, 60);
+    list.innerHTML = cur.map((it, i) => '<div class="sitem" data-i="' + i + '">' + esc(it.label) + (it.sub ? '<div class="m">' + esc(it.sub) + '</div>' : '') + '</div>').join('') || '<p class="hint">Kuch nahi mila</p>';
+  };
+  inp.addEventListener('input', draw); draw(); setTimeout(() => inp.focus(), 60);
+  list.addEventListener('click', (e) => { const el = e.target.closest('[data-i]'); if (!el) return; const v = cur[Number(el.dataset.i)].value; closeModal(); onPick(v); });
+  box.querySelector('#pk-no').onclick = closeModal;
+  if (extra) box.querySelector('#pk-x').onclick = () => extra.run(inp.value, box);
+}
+function copyText(t) {
+  try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(() => toast('Copy ho gaya')).catch(() => toast('Copy nahi hua', true)); return; } } catch (e) { /* fall through */ }
+  const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('Copy ho gaya'); } catch (e) { toast('Copy nahi hua', true); }
+  ta.remove();
+}
+function pickFiles(o) {
+  o = o || {};
+  return new Promise((res) => {
+    const i = document.createElement('input'); i.type = 'file'; i.style.display = 'none';
+    if (o.multiple) i.multiple = true; if (o.accept) i.accept = o.accept;
+    document.body.appendChild(i);
+    i.onchange = () => { const f = Array.from(i.files || []); i.remove(); res(f); };
+    i.addEventListener('cancel', () => { i.remove(); res([]); });
+    i.click();
+  });
+}
+function openLink(u) { if (tg && tg.openLink) tg.openLink(u); else window.open(u, '_blank'); }
+
+/* ───────────── git operations ───────────── */
+const refQ = (b) => (b ? '?ref=' + encodeURIComponent(b) : '');
+async function listDir(path, ref) {
+  const items = await GH.req('GET', '/repos/' + full() + '/contents' + (path ? '/' + encPath(path) : '') + refQ(ref));
+  if (!Array.isArray(items)) throw new Error('Ye file hai, folder nahi');
+  return items.sort((a, b) => (a.type === 'dir' ? 0 : 1) - (b.type === 'dir' ? 0 : 1) || a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+}
+async function readFile(path, ref) {
+  const it = await GH.req('GET', '/repos/' + full() + '/contents/' + encPath(path) + refQ(ref));
+  if (Array.isArray(it)) throw new Error('Ye folder hai, file nahi');
+  let bytes;
+  if (it.encoding === 'base64' && it.content) bytes = bytesFromB64(it.content);
+  else bytes = bytesFromB64((await GH.req('GET', '/repos/' + full() + '/git/blobs/' + it.sha)).content);
+  return { bytes, sha: it.sha };
+}
+function putFile(path, bytes, msg, sha, branch) {
+  const body = { message: msg, content: b64FromBytes(bytes) };
+  if (branch) body.branch = branch; if (sha) body.sha = sha;
+  return GH.req('PUT', '/repos/' + full() + '/contents/' + encPath(path), body);
+}
+async function deleteFileApi(path, msg, branch) {
+  const it = await GH.req('GET', '/repos/' + full() + '/contents/' + encPath(path) + refQ(branch));
+  return GH.req('DELETE', '/repos/' + full() + '/contents/' + encPath(path), { message: msg, sha: it.sha, branch });
+}
+async function headInfo(fullName, branch) {
+  const ref = await GH.req('GET', '/repos/' + fullName + '/git/ref/heads/' + encPath(branch));
+  const parent = ref.object.sha;
+  const c = await GH.req('GET', '/repos/' + fullName + '/git/commits/' + parent);
+  return { branch, parent, base: c.tree.sha };
+}
+async function commitEntries(fullName, branch, parent, base, entries, message, replace) {
+  let tree = replace ? null : base;
+  for (let i = 0; i < entries.length; i += 100) {
+    const body = { tree: entries.slice(i, i + 100) };
+    if (tree) body.base_tree = tree;
+    tree = (await GH.req('POST', '/repos/' + fullName + '/git/trees', body)).sha;
+  }
+  const c = await GH.req('POST', '/repos/' + fullName + '/git/commits', { message, tree, parents: [parent] });
+  await GH.req('PATCH', '/repos/' + fullName + '/git/refs/heads/' + encPath(branch), { sha: c.sha });
+}
+async function pushFiles(fullName, branch, files, message, replace) { // files: [[path, Uint8Array]]
+  let h = null;
+  for (let i = 0; i < 10 && !h; i++) { try { h = await headInfo(fullName, branch); } catch (e) { await sleep(1000); } }
+  if (!h) throw new Error('Branch ready nahi hui, thodi der baad try karo');
+  const entries = await pool(files, 6, async (f) => {
+    const t = textOf(f[1]);
+    if (t !== null && t !== '') return { path: f[0], mode: '100644', type: 'blob', content: t };
+    const b = await GH.req('POST', '/repos/' + fullName + '/git/blobs', { content: b64FromBytes(f[1]), encoding: 'base64' });
+    return { path: f[0], mode: '100644', type: 'blob', sha: b.sha };
+  });
+  await commitEntries(fullName, branch, h.parent, h.base, entries, message, replace);
+}
+async function blobsUnder(fullName, base, prefix) {
+  const t = await GH.req('GET', '/repos/' + fullName + '/git/trees/' + base + '?recursive=1');
+  if (t.truncated) throw new Error('Repo bahut bada hai, ye action abhi support nahi');
+  return { all: t.tree, hits: t.tree.filter((e) => e.type === 'blob' && (e.path === prefix || e.path.startsWith(prefix + '/'))) };
+}
+async function deletePath(prefix, branch) {
+  const h = await headInfo(full(), branch);
+  const { hits } = await blobsUnder(full(), h.base, prefix);
+  if (!hits.length) throw new Error('Is path me kuch nahi mila');
+  await commitEntries(full(), branch, h.parent, h.base, hits.map((e) => ({ path: e.path, mode: e.mode, type: 'blob', sha: null })), 'Delete ' + prefix + ' via Mini App');
+  return hits.length;
+}
+async function movePath(oldP, newP, branch) {
+  const h = await headInfo(full(), branch);
+  const { all, hits } = await blobsUnder(full(), h.base, oldP);
+  if (!hits.length) throw new Error('Purana path nahi mila');
+  if (newP === oldP || newP.startsWith(oldP + '/')) throw new Error('Naya path purane ke andar nahi ho sakta');
+  if (all.some((e) => e.type === 'blob' && (e.path === newP || e.path.startsWith(newP + '/')))) throw new Error('"' + newP + '" pehle se hai');
+  const entries = [];
+  hits.forEach((e) => {
+    entries.push({ path: e.path, mode: e.mode, type: 'blob', sha: null });
+    entries.push({ path: newP + e.path.slice(oldP.length), mode: e.mode, type: 'blob', sha: e.sha });
+  });
+  await commitEntries(full(), branch, h.parent, h.base, entries, 'Move ' + oldP + ' -> ' + newP + ' via Mini App');
+  return hits.length;
+}
+async function treePaths(branch) {
+  if (S.treeCache[branch]) return S.treeCache[branch];
+  const t = await GH.req('GET', '/repos/' + full() + '/git/trees/' + encodeURIComponent(branch) + '?recursive=1');
+  S.treeCache[branch] = t.tree.filter((e) => e.type === 'blob').map((e) => e.path);
+  return S.treeCache[branch];
+}
+async function readZipFile(file) {
+  if (!window.JSZip) throw new Error('JSZip load nahi hua (internet check karo)');
+  const z = await JSZip.loadAsync(file);
+  let files = [];
+  for (const n of Object.keys(z.files)) {
+    const f = z.files[n];
+    if (f.dir || /(^|\/)(__MACOSX|\.git)\//.test(n) || /\.DS_Store$/.test(n)) continue;
+    files.push([n, await f.async('uint8array')]);
+  }
+  if (!files.length) throw new Error('Zip khaali hai');
+  const tops = new Set(files.map((f) => f[0].split('/')[0]));
+  if (tops.size === 1 && files.every((f) => f[0].includes('/'))) files = files.map((f) => [f[0].split('/').slice(1).join('/'), f[1]]);
+  return files;
+}
+
+/* ───────────── editor abstraction (CodeMirror 5 / textarea fallback) ───────────── */
+function modeFor(name) {
+  const n = name.toLowerCase(); const ext = n.includes('.') ? n.split('.').pop() : n;
+  const M = { js: 'javascript', mjs: 'javascript', cjs: 'javascript', jsx: 'javascript', ts: { name: 'javascript', typescript: true }, tsx: { name: 'javascript', typescript: true }, json: { name: 'javascript', json: true }, html: 'htmlmixed', htm: 'htmlmixed', vue: 'htmlmixed', css: 'css', scss: 'css', xml: 'xml', svg: 'xml', py: 'python', md: 'markdown', markdown: 'markdown', sh: 'shell', bash: 'shell', zsh: 'shell', yml: 'yaml', yaml: 'yaml', c: 'text/x-csrc', h: 'text/x-csrc', cpp: 'text/x-c++src', cc: 'text/x-c++src', hpp: 'text/x-c++src', java: 'text/x-java', cs: 'text/x-csharp', kt: 'text/x-kotlin', sql: 'text/x-sql', php: 'application/x-httpd-php', go: 'go', rs: 'rust', toml: 'toml', dockerfile: 'dockerfile' };
+  return M[ext] || null;
+}
+function createEditor(host, text, filename) {
+  const api = {};
+  if (window.CodeMirror) {
+    const cm = window.CodeMirror(host, {
+      value: text, lineNumbers: true, lineWrapping: S.prefs.wrap, mode: modeFor(filename), indentUnit: 4, tabSize: 4,
+      matchBrackets: true, styleActiveLine: true,
+      extraKeys: { Tab: (c) => (c.somethingSelected() ? c.indentSelection('add') : c.replaceSelection('    ', 'end')), 'Shift-Tab': (c) => c.indentSelection('subtract') },
+    });
+    host.style.fontSize = S.prefs.font + 'px';
+    Object.assign(api, {
+      get: () => cm.getValue(),
+      replaceAll(t) { const cur = cm.getCursor(); const l = cm.lastLine(); cm.replaceRange(t, { line: 0, ch: 0 }, { line: l, ch: cm.getLine(l).length }); try { cm.setCursor(cur); } catch (e) { /* ignore */ } },
+      insert(t) { cm.replaceSelection(t, 'end'); cm.focus(); },
+      undo() { cm.undo(); cm.focus(); }, redo() { cm.redo(); cm.focus(); },
+      focus() { cm.focus(); }, refresh() { cm.refresh(); },
+      onChange(f) { cm.on('change', f); }, onCursor(f) { cm.on('cursorActivity', f); },
+      pos() { const c = cm.getCursor(); return { line: c.line + 1, col: c.ch + 1 }; },
+      lines: () => cm.lineCount(),
+      cursorIndex: () => cm.indexFromPos(cm.getCursor('to')),
+      select(a, b) { cm.setSelection(cm.posFromIndex(a), cm.posFromIndex(b)); cm.scrollIntoView(null, 120); },
+      goto(n) { const l = Math.max(0, Math.min(cm.lineCount() - 1, n - 1)); cm.setCursor({ line: l, ch: 0 }); cm.scrollIntoView({ line: l, ch: 0 }, 120); cm.focus(); },
+      setWrap(b) { cm.setOption('lineWrapping', b); cm.refresh(); },
+      setFont(px) { host.style.fontSize = px + 'px'; cm.refresh(); },
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.className = 'ta'; ta.value = text; ta.spellcheck = false; ta.setAttribute('autocapitalize', 'off'); ta.style.fontSize = S.prefs.font + 'px';
+    host.appendChild(ta);
+    const cb = []; const cc = [];
+    ta.addEventListener('input', () => cb.forEach((f) => f()));
+    ['keyup', 'click'].forEach((ev) => ta.addEventListener(ev, () => cc.forEach((f) => f())));
+    Object.assign(api, {
+      get: () => ta.value,
+      replaceAll(t) { ta.value = t; cb.forEach((f) => f()); },
+      insert(t) { ta.setRangeText(t, ta.selectionStart, ta.selectionEnd, 'end'); cb.forEach((f) => f()); ta.focus(); },
+      undo() { document.execCommand('undo'); }, redo() { document.execCommand('redo'); },
+      focus() { ta.focus(); }, refresh() {},
+      onChange(f) { cb.push(f); }, onCursor(f) { cc.push(f); },
+      pos() { const b = ta.value.slice(0, ta.selectionStart).split('\n'); return { line: b.length, col: b[b.length - 1].length + 1 }; },
+      lines: () => ta.value.split('\n').length,
+      cursorIndex: () => ta.selectionEnd,
+      select(a, b) { ta.setSelectionRange(a, b); },
+      goto(n) { const ls = ta.value.split('\n'); let i = 0; for (let k = 0; k < Math.min(n - 1, ls.length - 1); k++) i += ls[k].length + 1; ta.setSelectionRange(i, i); ta.focus(); },
+      setWrap(b) { ta.style.whiteSpace = b ? 'pre-wrap' : 'pre'; }, setFont(px) { ta.style.fontSize = px + 'px'; },
+    });
+    api.setWrap(S.prefs.wrap);
+  }
+  return api;
+}
+
+/* ───────────── AI hook (future: yahan se AI integrate hoga) ───────────── */
+const AI = {
+  async run(instruction, path, text) {
+    if (!S.ai.key) throw new Error('Pehle Settings me AI API key daalo');
+    const system = S.ai.system || 'You are a careful coding assistant. Return ONLY the complete updated file content. No explanations and no markdown code fences.';
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-api-key': S.ai.key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: S.ai.model, max_tokens: 8000, system, messages: [{ role: 'user', content: 'File: ' + path + '\n\nInstruction: ' + instruction + '\n\nCurrent content:\n' + text }] }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error((j.error && j.error.message) || ('AI error ' + r.status));
+    let out = (j.content || []).map((c) => c.text || '').join('');
+    out = out.replace(/^```[\w-]*\n/, '').replace(/\n```\s*$/, '');
+    return out;
+  },
+};
+
+/* ───────────── navigation ───────────── */
+function push(v) { stack.push(v); render(); }
+async function pop() {
+  const t = top();
+  if (t.view === 'editor' && Edt && Edt.dirty) {
+    if (!(await confirmBox('Unsaved changes', 'Bina save kiye bahar jaana hai?', { danger: true, okText: 'Discard' }))) return;
+  }
+  if (t.view === 'repo' && S.tab === 'files' && S.path) { S.path = parentOf(S.path); return loadTab(); }
+  if (stack.length > 1) {
+    if (t.view === 'editor') closeEditor();
+    stack.pop(); render();
+  }
+}
+function closeEditor() { Edt = null; if (inTg) { try { tg.disableClosingConfirmation(); } catch (e) { /* ignore */ } } }
+function render() {
+  const t = top();
+  if (inTg) { try { if (stack.length > 1) tg.BackButton.show(); else tg.BackButton.hide(); } catch (e) { /* ignore */ } }
+  $('#app').className = t.view === 'editor' ? 'noscroll' : '';
+  $('#foot').innerHTML = '';
+  ({ setup: vSetup, repos: vRepos, repo: vRepo, editor: vEditor, settings: vSettings, diff: vDiff })[t.view](t);
+}
+
+/* ───────────── views: setup / settings ───────────── */
+function vSetup(t) {
+  setHeader('<div class="hrow"><div class="ht">GitHub Manager</div></div>');
+  $('#app').innerHTML = '<div class="pad"><div class="card"><h2>🔑 GitHub se connect karo</h2>' +
+    '<p class="hint">GitHub → Settings → Developer settings → Personal access tokens → <b>Tokens (classic)</b>. Scopes: <code>repo</code>, <code>delete_repo</code> (workflow files edit karne ho to <code>workflow</code> bhi).</p>' +
+    (t.err ? '<div class="err" style="margin:8px 0">' + esc(t.err) + '</div>' : '') +
+    '<input id="tok" type="password" placeholder="ghp_..." autocomplete="off" autocapitalize="off" spellcheck="false">' +
+    '<button class="btn" data-a="connect">Connect</button>' +
+    '<p class="hint small">Token sirf tumhare Telegram account ke CloudStorage me save hota hai aur seedha GitHub ko jata hai. Beech me koi aur server nahi hai.</p></div></div>';
+}
+function vSettings() {
+  setHeader('<div class="hrow"><div class="grow"><div class="ht">⚙️ Settings</div><div class="hs">' + esc(GH.login) + '</div></div></div>');
+  const k = S.ai.key ? S.ai.key.slice(0, 7) + '…' + S.ai.key.slice(-3) : 'set nahi hai';
+  $('#app').innerHTML =
+    '<div class="card"><h3>Account</h3><div class="srow"><div class="grow"><div class="lbl">GitHub user</div>' + esc(GH.login) + '</div></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Token scopes</div><span id="scopes">check ho raha hai…</span></div></div>' +
+    '<button class="btn danger sm" data-a="g-logout">Logout (token hatao)</button></div>' +
+    '<div class="card"><h3>Editor</h3><div class="srow"><div class="grow">Line wrap</div><button class="btn ghost sm" data-a="g-wrap">' + (S.prefs.wrap ? 'ON' : 'OFF') + '</button></div>' +
+    '<div class="srow"><div class="grow">Font size: ' + S.prefs.font + 'px</div><button class="btn ghost sm" data-a="g-font" data-v="-1">A−</button><button class="btn ghost sm" data-a="g-font" data-v="1">A+</button></div></div>' +
+    '<div class="card"><h3>🤖 AI (optional)</h3><p class="hint small">Editor me ⋯ → AI Assist. Key sirf tumhare Telegram CloudStorage me rahegi.</p>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Anthropic API key</div>' + esc(k) + '</div><button class="btn ghost sm" data-a="g-aikey">Set</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Model</div>' + esc(S.ai.model) + '</div><button class="btn ghost sm" data-a="g-aimodel">Change</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">System prompt</div>' + esc(S.ai.system ? S.ai.system.slice(0, 40) + '…' : 'default') + '</div><button class="btn ghost sm" data-a="g-aisys">Edit</button></div></div>';
+  GH.scopes().then((s) => { const e = $('#scopes'); if (e) e.textContent = s === null ? '(fine-grained ya unknown)' : (s || '-'); }).catch(() => {});
+}
+async function savePrefs() { await Store.set('prefs', JSON.stringify(S.prefs)); }
+
+/* ───────────── views: repos list ───────────── */
+function visibleRepos() {
+  const q = S.q.trim().toLowerCase();
+  let a = S.repos.filter((r) => (S.filter === 'all' || (S.filter === 'public' && !r.private) || (S.filter === 'private' && r.private) || (S.filter === 'archived' && r.archived)) &&
+    (!q || r.name.toLowerCase().includes(q) || (r.description || '').toLowerCase().includes(q)));
+  if (S.sort === 'name') a.sort((x, y) => x.name.toLowerCase().localeCompare(y.name.toLowerCase()));
+  else if (S.sort === 'stars') a.sort((x, y) => y.stargazers_count - x.stargazers_count);
+  else a.sort((x, y) => new Date(y.pushed_at || y.updated_at) - new Date(x.pushed_at || x.updated_at));
+  return a;
+}
+function vRepos() {
+  setHeader('<div class="hrow"><div class="grow"><div class="ht">📦 ' + esc(GH.login) + '</div><div class="hs">' + S.repos.length + ' repos</div></div>' +
+    '<button class="ib" data-a="r-refresh">🔄</button><button class="ib' + (S.select ? ' on' : '') + '" data-a="r-select">☑️</button><button class="ib" data-a="r-new">＋</button><button class="ib" data-a="r-settings">⚙️</button></div>');
+  $('#app').innerHTML = '<div class="pad0"><div class="searchbar"><input id="rq" placeholder="🔎 Repo dhundo..." value="' + esc(S.q) + '" autocomplete="off"></div>' +
+    '<div class="chips">' + ['all', 'public', 'private', 'archived'].map((f) => '<span class="chip' + (S.filter === f ? ' on' : '') + '" data-a="r-filter" data-v="' + f + '">' + f + '</span>').join('') + '<span class="chip" data-a="r-sort">⇅ ' + S.sort + '</span></div>' +
+    '<div id="recents"></div><div id="rlist"></div></div>';
+  $('#rq').addEventListener('input', (e) => { S.q = e.target.value; renderRepoList(); });
+  renderRepoList();
+}
+function renderRepoList() {
+  const list = $('#rlist'); if (!list) return;
+  const rc = $('#recents');
+  if (rc) {
+    const rec = S.recents.filter((n) => S.repos.some((r) => r.name === n));
+    rc.innerHTML = rec.length && !S.q && !S.select ? '<div class="chips">' + rec.map((n) => '<span class="chip" data-a="repo-tap" data-repo="' + esc(n) + '">🕘 ' + esc(n) + '</span>').join('') + '</div>' : '';
+  }
+  const rows = visibleRepos();
+  if (!rows.length) list.innerHTML = S.reposLoading ? '<div class="spin"></div>' : '<p class="hint" style="padding:20px;text-align:center">Koi repo nahi mila</p>';
+  else list.innerHTML = rows.map((r) =>
+    '<div class="row" data-a="repo-tap" data-repo="' + esc(r.name) + '">' +
+    (S.select ? '<input type="checkbox" ' + (S.picked.has(r.name) ? 'checked' : '') + ' style="pointer-events:none">' : '') +
+    '<span class="ico">' + (r.archived ? '🗄' : r.private ? '🔒' : '🌐') + '</span>' +
+    '<div class="grow"><div class="t">' + esc(r.name) + '</div>' + (r.description ? '<div class="s">' + esc(r.description) + '</div>' : '') +
+    '<div class="m">' + (r.language ? esc(r.language) + ' • ' : '') + '⭐ ' + r.stargazers_count + ' • ' + ago(r.pushed_at || r.updated_at) + '</div></div><span class="m">›</span></div>').join('');
+  renderBulkBar();
+}
+function renderBulkBar() {
+  if (top() && top().view !== 'repos') return;
+  const n = S.picked.size;
+  $('#foot').innerHTML = S.select && n ? '<div class="bulk"><span class="m" style="align-self:center">' + n + ' chune</span>' +
+    [['private', '🔒 Private'], ['public', '🌐 Public'], ['archive', '🗄 Archive'], ['unarchive', '🗂 Unarchive'], ['delete', '🗑 Delete']].map((b) => '<button class="btn sm ' + (b[0] === 'delete' ? 'danger' : 'ghost') + '" data-a="r-bulk" data-v="' + b[0] + '">' + b[1] + '</button>').join('') + '</div>' : '';
+}
+async function loadRepos() {
+  S.reposLoading = true; if (top().view === 'repos') renderRepoList();
+  try { S.repos = await GH.all('/user/repos?affiliation=owner&sort=pushed'); } catch (e) { toast(e.message, true); }
+  S.reposLoading = false;
+  if (top() && top().view === 'repos') { vRepos(); }
+}
+
+/* ───────────── views: repo ───────────── */
+const TABS = [['files', '📁 Files'], ['commits', '🕒 Commits'], ['branches', '🌿 Branches'], ['settings', '⚙️ Repo']];
+function vRepo() {
+  setHeader('<div class="hrow"><div class="grow"><div class="ht">' + (S.repo.private ? '🔒 ' : '') + esc(S.repo.name) + '</div><div class="hs" data-a="pick-branch">🌿 ' + esc(S.branch) + ' ▾</div></div>' +
+    '<button class="ib" data-a="switch-repo">⇄</button><button class="ib" data-a="search-files">🔎</button><button class="ib" data-a="repo-menu">⋯</button></div>' +
+    '<div class="tabs">' + TABS.map((t) => '<span class="tab' + (S.tab === t[0] ? ' on' : '') + '" data-a="tab" data-v="' + t[0] + '">' + t[1] + '</span>').join('') + '</div>');
+  $('#app').innerHTML = '<div id="tabbody"></div>';
+  loadTab();
+}
+async function loadTab() {
+  const tab = S.tab; const body = $('#tabbody'); if (!body) return;
+  body.innerHTML = '<div class="spin"></div>';
+  const alive = () => S.tab === tab && top().view === 'repo' && $('#tabbody');
+  try {
+    if (tab === 'files') { const items = await listDir(S.path, S.branch); if (!alive()) return; S.items = items; $('#tabbody').innerHTML = filesHtml(); }
+    else if (tab === 'commits') { S.commits = []; S.cpage = 1; await loadCommits(); if (!alive()) return; $('#tabbody').innerHTML = commitsHtml(); }
+    else if (tab === 'branches') { const b = await GH.all('/repos/' + full() + '/branches'); if (!alive()) return; S.branches = b; $('#tabbody').innerHTML = branchesHtml(); }
+    else { const p = await GH.req('GET', '/repos/' + full() + '/pages').catch(() => null); if (!alive()) return; S.pages = p; $('#tabbody').innerHTML = repoSettingsHtml(); }
+  } catch (e) { if (alive()) $('#tabbody').innerHTML = '<div class="err">' + esc(e.message) + '</div><div style="padding:0 12px"><button class="btn" data-a="reload">Retry</button></div>'; }
+}
+function filesHtml() {
+  let acc = ''; const crumbs = ['<span class="crumb" data-a="cd" data-path="">' + esc(S.repo.name) + '</span>'];
+  S.path.split('/').filter(Boolean).forEach((seg) => { acc += (acc ? '/' : '') + seg; crumbs.push('<span class="crumb" data-a="cd" data-path="' + esc(acc) + '">' + esc(seg) + '</span>'); });
+  return '<div class="crumbs">' + crumbs.join('') + '</div>' +
+    '<div class="toolbar"><button class="btn sm" data-a="f-new">＋ Naya file</button><button class="btn sm ghost" data-a="f-upload">⬆️ Upload</button><button class="btn sm ghost" data-a="f-zip">📦 Zip update</button></div>' +
+    (S.path ? '<div class="row" data-a="cd" data-path="' + esc(parentOf(S.path)) + '"><span class="ico">⬆️</span><span class="grow t">..</span></div>' : '') +
+    (S.items.length ? S.items.map((it) => '<div class="row" data-a="' + (it.type === 'dir' ? 'cd' : 'open-file') + '" data-path="' + esc(it.path) + '"><span class="ico">' + (it.type === 'dir' ? '📁' : fileIcon(it.name)) + '</span><span class="grow t">' + esc(it.name) + '</span><span class="more" data-a="item-menu" data-path="' + esc(it.path) + '" data-type="' + it.type + '">⋯</span></div>').join('') : '<p class="hint" style="padding:20px;text-align:center">(khaali folder)</p>');
+}
+async function loadCommits() {
+  const a = await GH.req('GET', '/repos/' + full() + '/commits?sha=' + encodeURIComponent(S.branch) + '&per_page=30&page=' + S.cpage);
+  S.commits = S.commits.concat(a); S.cmore = a.length === 30;
+}
+function commitsHtml() {
+  return S.commits.map((c) => '<div class="row" data-a="commit" data-sha="' + esc(c.sha) + '"><div class="grow"><div class="t">' + esc(c.commit.message.split('\n')[0]) + '</div><div class="m">' + esc(c.sha.slice(0, 7)) + ' • ' + esc((c.commit.author && c.commit.author.name) || '?') + ' • ' + ago(c.commit.author && c.commit.author.date) + '</div></div><span class="m">›</span></div>').join('') +
+    (S.cmore ? '<div style="padding:10px 12px"><button class="btn ghost sm" data-a="more-commits">Aur dikhao</button></div>' : '') || '<p class="hint" style="padding:20px">Koi commit nahi</p>';
+}
+function branchesHtml() {
+  return '<div class="toolbar"><button class="btn sm" data-a="b-new">＋ Nayi branch</button></div>' +
+    S.branches.map((b) => '<div class="row" data-a="b-tap" data-name="' + esc(b.name) + '"><span class="ico">' + (b.name === S.branch ? '✅' : '🌿') + '</span><div class="grow"><div class="t">' + esc(b.name) + '</div><div class="m">' + (b.name === S.repo.default_branch ? '⭐ default' : '') + '</div></div><span class="m">⋯</span></div>').join('');
+}
+function repoSettingsHtml() {
+  const r = S.repo;
+  return '<div class="card"><div class="srow"><div class="grow"><div class="lbl">Name</div>' + esc(r.name) + '</div><button class="btn ghost sm" data-a="s-rename">Rename</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Description</div>' + esc(r.description || '-') + '</div><button class="btn ghost sm" data-a="s-desc">Edit</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Visibility</div>' + (r.private ? '🔒 Private' : '🌐 Public') + '</div><button class="btn ghost sm" data-a="s-vis">' + (r.private ? 'Public karo' : 'Private karo') + '</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Archive</div>' + (r.archived ? '🗄 Archived' : 'Active') + '</div><button class="btn ghost sm" data-a="s-archive">' + (r.archived ? 'Unarchive' : 'Archive') + '</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">Default branch</div>' + esc(r.default_branch) + '</div><button class="btn ghost sm" data-a="s-default">Badlo</button></div>' +
+    '<div class="srow"><div class="grow"><div class="lbl">GitHub Pages</div>' + (S.pages ? '🟢 ON — ' + esc(S.pages.html_url || '') : '⚪ OFF') + '</div>' + (S.pages ? '<button class="btn ghost sm" data-a="s-pages-off">Band</button>' : '<button class="btn ghost sm" data-a="s-pages-on">ON karo</button>') + '</div></div>' +
+    '<div class="card"><div class="toolbar" style="padding:0"><button class="btn ghost sm" data-a="s-open">GitHub pe kholo</button><button class="btn ghost sm" data-a="s-copy">Clone URL copy</button></div></div>' +
+    '<div class="card"><h3 style="color:var(--danger)">Danger zone</h3><button class="btn danger sm" data-a="s-delete">🗑 Repo delete karo</button></div>';
+}
+async function openRepo(name) {
+  await withBusy('Repo khol raha hu...', async () => {
+    S.repo = await GH.req('GET', '/repos/' + GH.login + '/' + encodeURIComponent(name));
+    S.branch = S.repo.default_branch; S.path = ''; S.tab = 'files'; S.treeCache = {};
+  });
+  S.recents = [name].concat(S.recents.filter((x) => x !== name)).slice(0, 6);
+  Store.set('recents', JSON.stringify(S.recents));
+  const t = top();
+  if (t.view === 'repo') render(); else push({ view: 'repo' });
+}
+function updateRepoLocal(r) {
+  S.repo = r;
+  const i = S.repos.findIndex((x) => x.id === r.id);
+  if (i >= 0) S.repos[i] = Object.assign(S.repos[i], r);
+}
+
+/* ───────────── views: diff ───────────── */
+async function vDiff(t) {
+  setHeader('<div class="hrow"><div class="grow"><div class="ht">Commit ' + esc(t.sha.slice(0, 7)) + '</div><div class="hs">' + esc(S.repo.name) + '</div></div></div>');
+  $('#app').innerHTML = '<div class="spin"></div>';
+  try {
+    const c = await GH.req('GET', '/repos/' + full() + '/commits/' + t.sha);
+    if (top() !== t) return;
+    const files = c.files || [];
+    const st = { added: '🟢', modified: '🟡', removed: '🔴', renamed: '🔵' };
+    $('#app').innerHTML = '<div class="pad"><h3 style="margin:0">' + esc(c.commit.message.split('\n')[0]) + '</h3><div class="hint">' + esc((c.commit.author && c.commit.author.name) || '') + ' • ' + esc(((c.commit.author && c.commit.author.date) || '').slice(0, 10)) + '</div>' +
+      '<div class="hint">' + files.length + ' files • <span class="add">+' + ((c.stats && c.stats.additions) || 0) + '</span> <span class="del">−' + ((c.stats && c.stats.deletions) || 0) + '</span></div></div>' +
+      files.map((f) => '<details' + (files.length <= 3 ? ' open' : '') + '><summary>' + (st[f.status] || '⚪') + ' ' + esc(f.filename) + ' <span class="add">+' + f.additions + '</span> <span class="del">−' + f.deletions + '</span></summary><pre class="diff">' +
+        (f.patch ? f.patch.split('\n').map((l) => '<span class="dl ' + (l[0] === '+' ? 'a' : l[0] === '-' ? 'd' : l[0] === '@' ? 'h' : '') + '">' + esc(l) + '</span>').join('') : '(binary / bada diff)') + '</pre></details>').join('');
+  } catch (e) { $('#app').innerHTML = '<div class="err">' + esc(e.message) + '</div>'; }
+}
+
+/* ───────────── views: editor ───────────── */
+const SYMS = [['⇥', '__tab'], ['↶', '__undo'], ['↷', '__redo'], ['{', '{'], ['}', '}'], ['(', '('], [')', ')'], ['[', '['], [']', ']'], ['<', '<'], ['>', '>'], ['"', '"'], ["'", "'"], ['`', '`'], [';', ';'], [':', ':'], ['=', '='], ['/', '/'], ['\\', '\\'], ['_', '_'], ['-', '-'], ['+', '+'], ['*', '*'], ['&', '&'], ['|', '|'], ['!', '!'], ['#', '#'], ['$', '$'], ['%', '%'], ['?', '?'], ['.', '.'], [',', ',']];
+function markDirty() {
+  const d = $('#dirty'); if (d) d.style.display = Edt && Edt.dirty ? 'inline' : 'none';
+  if (inTg) { try { if (Edt && Edt.dirty) tg.enableClosingConfirmation(); else tg.disableClosingConfirmation(); } catch (e) { /* ignore */ } }
+}
+function updStatus() {
+  const s = $('#stat'); if (!s || !Edt || !Edt.ed) return;
+  const p = Edt.ed.pos();
+  s.textContent = 'Ln ' + p.line + ', Col ' + p.col + ' • ' + Edt.ed.lines() + ' lines' + (Edt.chars != null ? ' • ' + Edt.chars + ' chars' : '') + ' • 🌿 ' + S.branch;
+}
+function vEditor() {
+  const e = Edt;
+  setHeader('<div class="hrow"><div class="grow"><div class="ht">' + fileIcon(e.path) + ' ' + esc(baseOf(e.path)) + ' <span class="dot" id="dirty" style="display:' + (e.dirty ? 'inline' : 'none') + '">●</span></div><div class="hs">' + esc(e.path) + '</div></div>' +
+    (e.bin ? '' : '<button class="btn sm" data-a="e-save">💾 Save</button>') + '<button class="ib" data-a="e-menu">⋯</button></div>');
+  if (e.bin) {
+    const ext = (e.path.split('.').pop() || '').toLowerCase();
+    const img = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'ico', 'bmp'].includes(ext);
+    $('#app').className = '';
+    $('#app').innerHTML = '<div class="pad"><div class="card"><div class="hint">Binary file • ' + e.bytes.length + ' bytes</div>' + (img ? '<img class="prev" id="prev">' : '<p>Preview nahi hai. ⋯ menu se replace/delete kar sakte ho.</p>') + '</div></div>';
+    if (img) { const types = { svg: 'image/svg+xml', jpg: 'image/jpeg' }; $('#prev').src = URL.createObjectURL(new Blob([e.bytes], { type: types[ext] || 'image/' + ext })); }
+    return;
+  }
+  $('#app').innerHTML = '<div id="edhost"></div>';
+  $('#foot').innerHTML = '<div class="symbar" id="sym">' + SYMS.map((s) => '<button data-ins="' + esc(s[1]) + '">' + esc(s[0]) + '</button>').join('') + '</div><div class="stat" id="stat"></div>';
+  e.ed = createEditor($('#edhost'), e.text, e.path);
+  let tm;
+  e.ed.onChange(() => { if (!e.dirty) { e.dirty = true; markDirty(); } clearTimeout(tm); tm = setTimeout(() => { if (Edt === e) { e.chars = e.ed.get().length; updStatus(); } }, 300); });
+  e.ed.onCursor(updStatus);
+  e.chars = e.text.length; updStatus(); markDirty();
+  setTimeout(() => e.ed.refresh(), 50);
+}
+async function openFile(path) {
+  await withBusy('File khol raha hu...', async () => {
+    const r = await readFile(path, S.branch);
+    const t = textOf(r.bytes);
+    Edt = { path, sha: r.sha, isNew: false, bin: t === null, bytes: r.bytes, text: t === null ? '' : t, orig: t, dirty: false, ed: null, chars: null };
+  });
+  push({ view: 'editor' });
+}
+function newFileEditor(path) {
+  Edt = { path, sha: null, isNew: true, bin: false, bytes: null, text: '', orig: '', dirty: false, ed: null, chars: 0 };
+  push({ view: 'editor' });
+}
+async function saveFile() {
+  const e = Edt; if (!e || e.bin) return;
+  if (!e.dirty && !e.isNew) return toast('Koi badlav nahi');
+  const msg = await ask('Commit message', { value: (e.isNew ? 'Create ' : 'Update ') + e.path, okText: 'Commit' });
+  if (msg === null) return;
+  const text = e.ed.get();
+  await withBusy('Save ho raha hai...', async () => {
+    const r = await putFile(e.path, TE.encode(text), msg.trim() || 'Update ' + e.path, e.sha, S.branch);
+    e.sha = r.content.sha; e.isNew = false; e.orig = text; e.dirty = false;
+  });
+  S.treeCache = {}; markDirty(); toast('✅ Commit ho gaya');
+}
+async function editorMenu() {
+  const e = Edt; if (!e) return;
+  const items = e.bin ? [] : [
+    { id: 'find', label: '🔍 Find & Replace' }, { id: 'goto', label: '↩️ Line pe jao' },
+    { id: 'wrap', label: '⏎ Line wrap: ' + (S.prefs.wrap ? 'ON → OFF' : 'OFF → ON') }, { id: 'fp', label: 'A+ Font bada' }, { id: 'fm', label: 'A− Font chhota' },
+    { id: 'copy', label: '📋 Poora copy' }, { id: 'paste', label: '📥 Clipboard se poora replace' }, { id: 'ai', label: '🤖 AI Assist' }, { id: 'revert', label: '♻️ Badlav wapas lo' },
+  ];
+  items.push({ id: 'hist', label: '🕒 File history' }, { id: 'move', label: '🔀 Rename / Move' }, { id: 'del', label: '🗑 File delete', danger: true });
+  const a = await sheet(e.path, items);
+  if (!a) return;
+  if (a === 'find') return findPanel();
+  if (a === 'goto') { const n = await ask('Line number', { okText: 'Jao' }); if (n && e.ed) e.ed.goto(parseInt(n, 10) || 1); return; }
+  if (a === 'wrap') { S.prefs.wrap = !S.prefs.wrap; e.ed.setWrap(S.prefs.wrap); return savePrefs(); }
+  if (a === 'fp' || a === 'fm') { S.prefs.font = Math.max(10, Math.min(24, S.prefs.font + (a === 'fp' ? 1 : -1))); e.ed.setFont(S.prefs.font); toast('Font ' + S.prefs.font + 'px'); return savePrefs(); }
+  if (a === 'copy') return copyText(e.ed.get());
+  if (a === 'paste') {
+    try { const t = await navigator.clipboard.readText(); if (t) { e.ed.replaceAll(t); toast('Paste ho gaya'); } } catch (err) { toast('Clipboard allow nahi hai. Editor me long-press → Paste karo.', true); }
+    return;
+  }
+  if (a === 'ai') return aiPanel();
+  if (a === 'revert') { if (await confirmBox('Badlav wapas?', 'Saare unsaved badlav hat jayenge.', { danger: true, okText: 'Haan' })) { e.ed.replaceAll(e.orig || ''); e.dirty = false; markDirty(); } return; }
+  if (a === 'hist') {
+    const cs = await withBusy('History...', () => GH.req('GET', '/repos/' + full() + '/commits?path=' + encodeURIComponent(e.path) + '&sha=' + encodeURIComponent(S.branch) + '&per_page=15'));
+    if (!cs.length) return toast('History nahi mili');
+    const s = await sheet('History: ' + baseOf(e.path), cs.map((c) => ({ id: c.sha, label: c.sha.slice(0, 7) + '  ' + c.commit.message.split('\n')[0].slice(0, 40) })));
+    if (s) push({ view: 'diff', sha: s });
+    return;
+  }
+  if (a === 'move') {
+    const np = await ask('Naya poora path', { value: e.path, okText: 'Move' }); if (!np || np.trim() === e.path) return;
+    const clean = normPath(np); if (!clean) return toast('Path galat hai', true);
+    await withBusy('Move ho raha hai...', () => movePath(e.path, clean, S.branch));
+    S.treeCache = {}; e.dirty = false; closeEditor(); stack.pop(); S.path = parentOf(clean); render(); return toast('✅ Move ho gaya');
+  }
+  if (a === 'del') {
+    if (!(await confirmBox('Delete?', e.path, { danger: true, okText: 'Delete' }))) return;
+    await withBusy('Delete ho raha hai...', () => deleteFileApi(e.path, 'Delete ' + e.path + ' via Mini App', S.branch));
+    S.treeCache = {}; closeEditor(); stack.pop(); render(); return toast('🗑 Delete ho gayi');
+  }
+}
+function normPath(p) {
+  const parts = p.trim().split('/').filter(Boolean);
+  if (!parts.length || parts.some((x) => x === '.' || x === '..') || parts[0] === '.git') return null;
+  return parts.join('/');
+}
+function findPanel() {
+  const e = Edt; if (!e || !e.ed) return;
+  const box = openModal('<input id="fr-f" placeholder="Find" autocomplete="off" autocapitalize="off" spellcheck="false"><input id="fr-r" placeholder="Replace with" autocomplete="off" autocapitalize="off" spellcheck="false">' +
+    '<label class="chk"><input type="checkbox" id="fr-x"> Regex</label><div class="mrow"><button class="btn ghost sm" id="fr-n">Next</button><button class="btn sm" id="fr-a">Replace all</button><button class="btn ghost sm" id="fr-c">Close</button></div>', { top: true });
+  const f = box.querySelector('#fr-f'); const r = box.querySelector('#fr-r'); const x = box.querySelector('#fr-x');
+  const build = () => { if (!f.value) return null; try { return x.checked ? new RegExp(f.value, 'g') : null; } catch (err) { toast('Regex galat hai', true); return undefined; } };
+  box.querySelector('#fr-n').onclick = () => {
+    const re = build(); if (re === undefined || !f.value) return;
+    const text = e.ed.get(); const start = e.ed.cursorIndex(); let idx = -1; let len = 0;
+    if (re) { re.lastIndex = start; let m = re.exec(text); if (!m) { re.lastIndex = 0; m = re.exec(text); } if (m) { idx = m.index; len = m[0].length || 1; } }
+    else { idx = text.indexOf(f.value, start); if (idx < 0) idx = text.indexOf(f.value); len = f.value.length; }
+    if (idx < 0) return toast('Nahi mila'); e.ed.select(idx, idx + len);
+  };
+  box.querySelector('#fr-a').onclick = () => {
+    const re = build(); if (re === undefined || !f.value) return;
+    const text = e.ed.get(); let n; let out;
+    if (re) { n = (text.match(re) || []).length; out = text.replace(re, r.value); }
+    else { n = text.split(f.value).length - 1; out = text.split(f.value).join(r.value); }
+    if (!n) return toast('Nahi mila'); e.ed.replaceAll(out); toast(n + ' jagah replace hua');
+  };
+  box.querySelector('#fr-c').onclick = closeModal;
+  setTimeout(() => f.focus(), 60);
+}
+function aiPanel() {
+  const e = Edt; if (!e || !e.ed) return;
+  const box = openModal('<h3>🤖 AI Assist</h3><p class="hint">Is file ke liye instruction likho. Result editor me aayega (undo ↶ se wapas), tum review karke Save karo.</p><textarea id="ai-i" rows="5" placeholder="Jaise: error handling add karo aur comments Hindi me likho"></textarea><div class="mrow"><button class="btn ghost" id="ai-c">Cancel</button><button class="btn" id="ai-r">Run</button></div>');
+  box.querySelector('#ai-c').onclick = closeModal;
+  box.querySelector('#ai-r').onclick = async () => {
+    const ins = box.querySelector('#ai-i').value.trim(); if (!ins) return;
+    closeModal();
+    try {
+      const out = await withBusy('AI soch raha hai...', () => AI.run(ins, e.path, e.ed.get()));
+      if (Edt === e) { e.ed.replaceAll(out); toast('AI ne edit kiya. Review karke Save karo.'); }
+    } catch (err) { toast(err.message, true); }
+  };
+}
+
+/* ───────────── repo-level flows ───────────── */
+async function newRepoFlow() {
+  const box = openModal('<h3>＋ Naya repo</h3><input id="nr-n" placeholder="repo-name" autocomplete="off" autocapitalize="off"><input id="nr-d" placeholder="description (optional)" autocomplete="off">' +
+    '<label class="chk"><input type="checkbox" id="nr-p"> Private</label><div class="hint" id="nr-z">Zip se banana ho to chuno (optional)</div><button class="btn ghost sm" id="nr-pick">📦 Zip chuno</button>' +
+    '<div class="mrow"><button class="btn ghost" id="nr-no">Cancel</button><button class="btn" id="nr-ok">Banao</button></div>');
+  let zip = null;
+  box.querySelector('#nr-pick').onclick = async () => {
+    const f = (await pickFiles({ accept: '.zip,application/zip' }))[0]; if (!f) return;
+    zip = f; box.querySelector('#nr-z').textContent = '📦 ' + f.name;
+    const n = box.querySelector('#nr-n'); if (!n.value) n.value = cleanRepoName(f.name.replace(/\.zip$/i, '').replace(/-(master|main)$/i, ''));
+  };
+  box.querySelector('#nr-no').onclick = closeModal;
+  box.querySelector('#nr-ok').onclick = async () => {
+    const name = cleanRepoName(box.querySelector('#nr-n').value); const desc = box.querySelector('#nr-d').value.trim(); const priv = box.querySelector('#nr-p').checked;
+    if (!box.querySelector('#nr-n').value.trim()) return toast('Naam likho', true);
+    closeModal();
+    try {
+      const repo = await withBusy('Repo ban raha hai...', async () => {
+        const files = zip ? await readZipFile(zip) : null;
+        const r = await GH.req('POST', '/user/repos', { name, description: desc, private: priv, auto_init: true });
+        if (files) await pushFiles(r.full_name, r.default_branch, files, 'Upload via Mini App', false);
+        return r;
+      });
+      S.repos.unshift(repo); toast('✅ ' + repo.name + ' ban gaya'); await openRepo(repo.name);
+    } catch (err) { toast(err.message, true); }
+  };
+}
+async function bulkAction(kind) {
+  const names = Array.from(S.picked); if (!names.length) return;
+  if (kind === 'delete') {
+    const t = await ask(names.length + ' repo delete honge', { hint: 'Ye undo nahi hota. Confirm ke liye DELETE likho.\n' + names.slice(0, 8).join(', '), okText: 'Delete' });
+    if (t !== 'DELETE') return t === null ? undefined : toast('Cancel (DELETE nahi likha)', true);
+  } else if (!(await confirmBox(names.length + ' repo: ' + kind, names.slice(0, 8).join(', '), { okText: 'Haan' }))) return;
+  const fails = []; const end = busy('0/' + names.length);
+  for (let i = 0; i < names.length; i++) {
+    $('#busymsg').textContent = (i + 1) + '/' + names.length + ' ' + names[i];
+    try {
+      const path = '/repos/' + GH.login + '/' + encodeURIComponent(names[i]);
+      if (kind === 'delete') { await GH.req('DELETE', path); S.repos = S.repos.filter((r) => r.name !== names[i]); }
+      else {
+        const body = { private: { private: true }, public: { private: false }, archive: { archived: true }, unarchive: { archived: false } }[kind];
+        const r = await GH.req('PATCH', path, body); const k = S.repos.findIndex((x) => x.name === names[i]); if (k >= 0) S.repos[k] = Object.assign(S.repos[k], r);
+      }
+    } catch (err) { fails.push(names[i] + ': ' + err.message); }
+  }
+  end(); S.picked.clear(); vRepos();
+  if (fails.length) toast(fails.length + ' fail:\n' + fails[0], true); else toast('✅ Ho gaya');
+}
+function pickRepoSwitcher() {
+  picker('Repo badlo', S.repos.map((r) => ({ label: r.name, sub: r.description || '', value: r.name })), (n) => openRepo(n));
+}
+async function searchFiles() {
+  const paths = await withBusy('Files load ho rahi hain...', () => treePaths(S.branch));
+  picker('File dhundo (' + S.branch + ')', paths.map((p) => ({ label: p, value: p })), (p) => openFile(p), {
+    label: 'Code ke andar dhundo',
+    run: async (q, box) => {
+      if (!q.trim()) return toast('Kuch likho', true);
+      try {
+        const res = await GH.req('GET', '/search/code?q=' + encodeURIComponent(q + ' repo:' + full()) + '&per_page=20');
+        const items = (res.items || []).map((i) => ({ label: i.path, value: i.path }));
+        if (!items.length) return toast('Code me nahi mila (naye repo me index hone me time lagta hai)');
+        closeModal(); picker('Code results', items, (p) => openFile(p));
+      } catch (e) { toast(e.message, true); }
+    },
+  });
+}
+
+/* ───────────── actions ───────────── */
+const A = {
+  async connect() {
+    const v = ($('#tok').value || '').trim(); if (!v) return;
+    GH.token = v;
+    try {
+      const u = await withBusy('Check ho raha hai...', () => GH.req('GET', '/user'));
+      GH.login = u.login; await Store.set('gh_token', v);
+      stack.length = 0; stack.push({ view: 'repos' }); render(); loadRepos();
+    } catch (e) { GH.token = ''; stack.length = 0; stack.push({ view: 'setup', err: e.message }); render(); }
+  },
+  'r-refresh': () => loadRepos(),
+  'r-select': () => { S.select = !S.select; S.picked.clear(); vRepos(); },
+  'r-new': () => newRepoFlow(),
+  'r-settings': () => push({ view: 'settings' }),
+  'r-filter': (d) => { S.filter = d.v; vRepos(); },
+  'r-sort': () => { S.sort = { updated: 'name', name: 'stars', stars: 'updated' }[S.sort]; vRepos(); },
+  'r-bulk': (d) => bulkAction(d.v),
+  'repo-tap': (d) => {
+    if (S.select) { if (S.picked.has(d.repo)) S.picked.delete(d.repo); else S.picked.add(d.repo); return renderRepoList(); }
+    return openRepo(d.repo);
+  },
+  tab: (d) => { S.tab = d.v; vRepo(); },
+  cd: (d) => { S.path = d.path; loadTab(); },
+  'open-file': (d) => openFile(d.path),
+  reload: () => loadTab(),
+  async 'item-menu'(d) {
+    const isDir = d.type === 'dir';
+    const a = await sheet(d.path, [{ id: 'move', label: '🔀 Rename / Move' }, { id: 'copy', label: '📋 Path copy' }, { id: 'del', label: isDir ? '🗑 Folder delete' : '🗑 File delete', danger: true }]);
+    if (a === 'copy') return copyText(d.path);
+    if (a === 'move') {
+      const np = await ask('Naya poora path', { value: d.path, okText: 'Move' }); if (!np || np.trim() === d.path) return;
+      const c = normPath(np); if (!c) return toast('Path galat hai', true);
+      await withBusy('Move ho raha hai...', () => movePath(d.path, c, S.branch)); S.treeCache = {}; toast('✅ Move ho gaya'); return loadTab();
+    }
+    if (a === 'del') {
+      if (!(await confirmBox('Delete?', d.path + (isDir ? '\n(folder ki saari files)' : ''), { danger: true, okText: 'Delete' }))) return;
+      await withBusy('Delete ho raha hai...', () => deletePath(d.path, S.branch)); S.treeCache = {}; toast('🗑 Delete ho gaya'); return loadTab();
+    }
+  },
+  async 'f-new'() {
+    const n = await ask('Naya file ka naam', { placeholder: 'main.py ya src/utils.js', hint: S.path ? 'Folder: ' + S.path : 'Root me', okText: 'Banao' }); if (!n) return;
+    const p = normPath(S.path ? S.path + '/' + n : n); if (!p) return toast('Naam galat hai', true);
+    newFileEditor(p);
+  },
+  async 'f-upload'() {
+    const files = await pickFiles({ multiple: true }); if (!files.length) return;
+    const entries = [];
+    for (const f of files) entries.push([S.path ? S.path + '/' + f.name : f.name, new Uint8Array(await f.arrayBuffer())]);
+    await withBusy('Upload ho raha hai...', () => pushFiles(full(), S.branch, entries, 'Upload ' + files.length + ' file(s) via Mini App', false));
+    S.treeCache = {}; toast('✅ ' + files.length + ' file upload'); loadTab();
+  },
+  async 'f-zip'() {
+    const f = (await pickFiles({ accept: '.zip,application/zip' }))[0]; if (!f) return;
+    const mode = await sheet('Zip kaise lagana hai?', [{ id: 'merge', label: '➕ Merge (add/overwrite, purani files rahengi)' }, { id: 'replace', label: '♻️ Replace (purani saari files hat jayengi)', danger: true }]);
+    if (!mode) return;
+    await withBusy('Zip upload ho raha hai...', async () => { const files = await readZipFile(f); await pushFiles(full(), S.branch, files, (mode === 'replace' ? 'Replace' : 'Update') + ' files via Mini App', mode === 'replace'); });
+    S.treeCache = {}; toast('✅ Zip lag gaya'); loadTab();
+  },
+  async 'pick-branch'() {
+    const bs = S.branches.length ? S.branches : await withBusy('Branches...', () => GH.all('/repos/' + full() + '/branches')); S.branches = bs;
+    const n = await sheet('Branch chuno', bs.map((b) => ({ id: b.name, label: (b.name === S.branch ? '✅ ' : '🌿 ') + b.name })));
+    if (n && n !== S.branch) { S.branch = n; S.path = ''; S.treeCache = {}; vRepo(); }
+  },
+  'switch-repo': () => pickRepoSwitcher(),
+  'search-files': () => searchFiles(),
+  async 'repo-menu'() {
+    const a = await sheet(S.repo.full_name, [{ id: 'gh', label: '🔗 GitHub pe kholo' }, { id: 'refresh', label: '🔄 Refresh' }, { id: 'clone', label: '📋 Clone URL copy' }]);
+    if (a === 'gh') openLink(S.repo.html_url); if (a === 'refresh') { S.treeCache = {}; S.branches = []; vRepo(); } if (a === 'clone') copyText(S.repo.clone_url);
+  },
+  commit: (d) => push({ view: 'diff', sha: d.sha }),
+  async 'more-commits'() { S.cpage++; await loadCommits(); $('#tabbody').innerHTML = commitsHtml(); },
+  async 'b-new'() {
+    const n = await ask('Nayi branch ka naam', { hint: '"' + S.branch + '" se banegi', okText: 'Banao' }); if (!n) return;
+    const name = n.trim().replace(/[^A-Za-z0-9._/-]+/g, '-').replace(/^[-/.]+|[-/.]+$/g, ''); if (!name) return toast('Naam galat hai', true);
+    await withBusy('Branch ban rahi hai...', async () => {
+      const h = await headInfo(full(), S.branch);
+      await GH.req('POST', '/repos/' + full() + '/git/refs', { ref: 'refs/heads/' + name, sha: h.parent });
+    });
+    S.branch = name; S.path = ''; S.treeCache = {}; S.branches = []; toast('✅ Branch ban gayi'); vRepo();
+  },
+  async 'b-tap'(d) {
+    const n = d.name; const isDef = n === S.repo.default_branch;
+    const a = await sheet('🌿 ' + n, [{ id: 'sw', label: '✅ Is branch pe kaam karo' }, { id: 'def', label: '⭐ Default banao' }, { id: 'mg', label: '🔀 Merge → ' + S.branch }, { id: 'pr', label: '📬 Pull Request kholo' }, { id: 'del', label: '🗑 Branch delete', danger: true }]);
+    if (!a) return;
+    if (a === 'sw') { S.branch = n; S.path = ''; S.treeCache = {}; return vRepo(); }
+    if (a === 'def') { updateRepoLocal(await withBusy('Default badal raha hu...', () => GH.req('PATCH', '/repos/' + full(), { default_branch: n }))); toast('⭐ Default: ' + n); return loadTab(); }
+    if (a === 'mg') {
+      if (n === S.branch) return toast('Branch khud me merge nahi hoti', true);
+      const r = await withBusy('Merge ho raha hai...', () => GH.req('POST', '/repos/' + full() + '/merges', { base: S.branch, head: n }));
+      toast(r ? '✅ ' + n + ' → ' + S.branch + ' merge' : 'Pehle se up-to-date'); return;
+    }
+    if (a === 'pr') {
+      const title = await ask('PR title', { value: n, okText: 'Create' }); if (!title) return;
+      const base = n === S.repo.default_branch ? S.branch : S.repo.default_branch;
+      const pr = await withBusy('PR ban rahi hai...', () => GH.req('POST', '/repos/' + full() + '/pulls', { title, head: n, base }));
+      toast('✅ PR #' + pr.number); return openLink(pr.html_url);
+    }
+    if (a === 'del') {
+      if (isDef) return toast('Default branch delete nahi hoti', true);
+      if (!(await confirmBox('Branch delete?', n, { danger: true, okText: 'Delete' }))) return;
+      await withBusy('Delete...', () => GH.req('DELETE', '/repos/' + full() + '/git/refs/heads/' + encPath(n)));
+      if (S.branch === n) { S.branch = S.repo.default_branch; } S.branches = []; toast('🗑 Branch delete'); vRepo();
+    }
+  },
+  async 's-rename'() {
+    const n = await ask('Naya repo naam', { value: S.repo.name, okText: 'Rename' }); if (!n) return;
+    const r = await withBusy('Rename...', () => GH.req('PATCH', '/repos/' + full(), { name: cleanRepoName(n) })); updateRepoLocal(r); toast('✅ Rename ho gaya'); vRepo();
+  },
+  async 's-desc'() {
+    const n = await ask('Description', { value: S.repo.description || '', okText: 'Save' }); if (n === null) return;
+    updateRepoLocal(await withBusy('Save...', () => GH.req('PATCH', '/repos/' + full(), { description: n }))); toast('✅ Save'); loadTab();
+  },
+  async 's-vis'() {
+    const toPublic = S.repo.private;
+    if (!(await confirmBox(toPublic ? 'Public karna hai?' : 'Private karna hai?', toPublic ? 'Sab log code dekh payenge.' : 'Sirf tum dekh paoge.', { okText: 'Haan', danger: toPublic }))) return;
+    updateRepoLocal(await withBusy('Badal raha hu...', () => GH.req('PATCH', '/repos/' + full(), { private: !toPublic }))); vRepo();
+  },
+  async 's-archive'() {
+    updateRepoLocal(await withBusy('...', () => GH.req('PATCH', '/repos/' + full(), { archived: !S.repo.archived }))); loadTab();
+  },
+  async 's-default'() {
+    const bs = S.branches.length ? S.branches : await withBusy('Branches...', () => GH.all('/repos/' + full() + '/branches')); S.branches = bs;
+    const n = await sheet('Default branch', bs.map((b) => ({ id: b.name, label: b.name }))); if (!n) return;
+    updateRepoLocal(await withBusy('...', () => GH.req('PATCH', '/repos/' + full(), { default_branch: n }))); loadTab();
+  },
+  async 's-pages-on'() {
+    await withBusy('Pages ON ho raha hai...', () => GH.req('POST', '/repos/' + full() + '/pages', { source: { branch: S.repo.default_branch, path: '/' } }));
+    toast('✅ Pages ON (1-2 min me live)'); loadTab();
+  },
+  async 's-pages-off'() { await withBusy('...', () => GH.req('DELETE', '/repos/' + full() + '/pages')); toast('Pages band'); loadTab(); },
+  's-open': () => openLink(S.repo.html_url),
+  's-copy': () => copyText(S.repo.clone_url),
+  async 's-delete'() {
+    const t = await ask('Repo delete', { hint: 'Ye undo nahi hota. Confirm ke liye repo ka naam likho: ' + S.repo.name, okText: 'Delete' });
+    if (t === null) return; if (t.trim() !== S.repo.name) return toast('Naam match nahi hua', true);
+    await withBusy('Delete ho raha hai...', () => GH.req('DELETE', '/repos/' + full()));
+    S.repos = S.repos.filter((r) => r.id !== S.repo.id); stack.length = 1; render(); toast('🗑 Repo delete ho gaya');
+  },
+  'e-save': () => saveFile(),
+  'e-menu': () => editorMenu(),
+  async 'g-logout'() {
+    if (!(await confirmBox('Logout?', 'Token hat jayega.', { danger: true, okText: 'Logout' }))) return;
+    await Store.del('gh_token'); GH.token = ''; S.repos = []; stack.length = 0; stack.push({ view: 'setup' }); render();
+  },
+  'g-wrap': () => { S.prefs.wrap = !S.prefs.wrap; savePrefs(); vSettings(); },
+  'g-font': (d) => { S.prefs.font = Math.max(10, Math.min(24, S.prefs.font + Number(d.v))); savePrefs(); vSettings(); },
+  async 'g-aikey'() { const v = await ask('Anthropic API key', { placeholder: 'sk-ant-...', okText: 'Save' }); if (v === null) return; S.ai.key = v.trim(); await Store.set('ai_key', S.ai.key); vSettings(); },
+  async 'g-aimodel'() { const v = await ask('Model naam', { value: S.ai.model, okText: 'Save' }); if (!v) return; S.ai.model = v.trim(); await Store.set('ai_model', S.ai.model); vSettings(); },
+  async 'g-aisys'() { const v = await ask('System prompt (khaali = default)', { value: S.ai.system, multiline: true, okText: 'Save' }); if (v === null) return; S.ai.system = v.trim(); await Store.set('ai_sys', S.ai.system.slice(0, 3500)); vSettings(); },
+};
+
+document.addEventListener('click', (e) => {
+  const el = e.target.closest && e.target.closest('[data-a]'); if (!el) return;
+  const fn = A[el.dataset.a]; if (!fn) return;
+  Promise.resolve().then(() => fn(el.dataset, el, e)).catch((err) => { toast(err && err.message ? err.message : String(err), true); });
+});
+document.addEventListener('pointerdown', (e) => {
+  const b = e.target.closest && e.target.closest('[data-ins]'); if (!b) return;
+  e.preventDefault();
+  if (!Edt || !Edt.ed) return;
+  const v = b.dataset.ins;
+  if (v === '__undo') Edt.ed.undo(); else if (v === '__redo') Edt.ed.redo(); else Edt.ed.insert(v === '__tab' ? '    ' : v);
+});
+
+/* ───────────── boot ───────────── */
+function applyTheme() { document.documentElement.dataset.dark = tg && tg.colorScheme === 'dark' ? '1' : ''; }
+async function boot() {
+  if (tg) {
+    try { tg.ready(); tg.expand(); if (tg.disableVerticalSwipes) tg.disableVerticalSwipes(); tg.BackButton.onClick(pop); tg.onEvent('themeChanged', applyTheme); } catch (e) { /* ignore */ }
+    applyTheme();
+  }
+  const [tok, prefs, rec, key, model, sys] = await Promise.all(['gh_token', 'prefs', 'recents', 'ai_key', 'ai_model', 'ai_sys'].map((k) => Store.get(k)));
+  try { if (prefs) Object.assign(S.prefs, JSON.parse(prefs)); } catch (e) { /* ignore */ }
+  try { if (rec) S.recents = JSON.parse(rec); } catch (e) { /* ignore */ }
+  if (key) S.ai.key = key; if (model) S.ai.model = model; if (sys) S.ai.system = sys;
+  if (!tok) { stack.push({ view: 'setup' }); return render(); }
+  GH.token = tok;
+  try {
+    const u = await GH.req('GET', '/user'); GH.login = u.login;
+    stack.push({ view: 'repos' }); render(); loadRepos();
+  } catch (e) { stack.length = 0; stack.push({ view: 'setup', err: e.message }); render(); }
+}
+window.addEventListener('load', boot);
+})();
+</script>
+</body>
+</html>
